@@ -10,6 +10,7 @@ const PRIORITY_LEVELS = [
 ];
 
 const STORAGE_KEY = 'todo-list-tasks';
+const THEME_KEY = 'todo-list-theme';
 
 const TodoList = () => {
   const [todos, setTodos] = useState(() => {
@@ -22,11 +23,24 @@ const TodoList = () => {
   const [sortOrder, setSortOrder] = useState('desc'); // 'asc' или 'desc'
   const [editingId, setEditingId] = useState(null);
   const [editValue, setEditValue] = useState('');
+  const [isDarkTheme, setIsDarkTheme] = useState(() => {
+    const savedTheme = localStorage.getItem(THEME_KEY);
+    return savedTheme ? JSON.parse(savedTheme) : false;
+  });
 
   // Сохраняем задачи в localStorage при каждом изменении
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
   }, [todos]);
+
+  useEffect(() => {
+    localStorage.setItem(THEME_KEY, JSON.stringify(isDarkTheme));
+    document.body.className = isDarkTheme ? 'dark-theme' : 'light-theme';
+  }, [isDarkTheme]);
+
+  const toggleTheme = () => {
+    setIsDarkTheme(!isDarkTheme);
+  };
 
   const handleAddTodo = (e) => {
     e.preventDefault();
@@ -104,8 +118,17 @@ const TodoList = () => {
   };
 
   return (
-    <div className="todo-container">
-      <h1>Список задач</h1>
+    <div className={`todo-container ${isDarkTheme ? 'dark' : 'light'}`}>
+      <div className="header">
+        <h1>Список задач</h1>
+        <button
+          onClick={toggleTheme}
+          className={`theme-toggle ${isDarkTheme ? 'dark' : 'light'}`}
+          title={isDarkTheme ? 'Переключить на светлую тему' : 'Переключить на темную тему'}
+        >
+          {isDarkTheme ? '☀️' : '🌙'}
+        </button>
+      </div>
       <form onSubmit={handleAddTodo} className="todo-form">
         <input
           type="text"
