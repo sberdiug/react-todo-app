@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './TodoList.css';
 
 const PRIORITY_LEVELS = [
@@ -9,12 +9,24 @@ const PRIORITY_LEVELS = [
   { id: 5, name: 'Очень высокий', color: '#FF6347' }
 ];
 
+const STORAGE_KEY = 'todo-list-tasks';
+
 const TodoList = () => {
-  const [todos, setTodos] = useState([]);
+  const [todos, setTodos] = useState(() => {
+    const savedTodos = localStorage.getItem(STORAGE_KEY);
+    return savedTodos ? JSON.parse(savedTodos) : [];
+  });
   const [inputValue, setInputValue] = useState('');
   const [filter, setFilter] = useState('all'); // 'all', 'active', 'completed'
   const [selectedPriority, setSelectedPriority] = useState(3); // По умолчанию средний приоритет
   const [sortOrder, setSortOrder] = useState('desc'); // 'asc' или 'desc'
+  const [editingId, setEditingId] = useState(null);
+  const [editValue, setEditValue] = useState('');
+
+  // Сохраняем задачи в localStorage при каждом изменении
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+  }, [todos]);
 
   const handleAddTodo = (e) => {
     e.preventDefault();
@@ -45,6 +57,26 @@ const TodoList = () => {
     ));
   };
 
+  const handleEditStart = (id, text) => {
+    setEditingId(id);
+    setEditValue(text);
+  };
+
+  const handleEditSave = (id) => {
+    if (editValue.trim() !== '') {
+      setTodos(todos.map(todo =>
+        todo.id === id ? { ...todo, text: editValue } : todo
+      ));
+      setEditingId(null);
+      setEditValue('');
+    }
+  };
+
+  const handleEditCancel = () => {
+    setEditingId(null);
+    setEditValue('');
+  };
+
   const toggleSortOrder = () => {
     setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
   };
@@ -73,7 +105,7 @@ const TodoList = () => {
 
   return (
     <div className="todo-container">
-      <h1>Todo Manager</h1>
+      <h1>Список задач</h1>
       <form onSubmit={handleAddTodo} className="todo-form">
         <input
           type="text"
@@ -138,24 +170,58 @@ const TodoList = () => {
               checked={todo.completed}
               onChange={() => handleToggleTodo(todo.id)}
             />
-            <span className="todo-text">{todo.text}</span>
-            <select
-              value={todo.priority}
-              onChange={(e) => handlePriorityChange(todo.id, Number(e.target.value))}
-              className="priority-select"
-            >
-              {PRIORITY_LEVELS.map(priority => (
-                <option key={priority.id} value={priority.id}>
-                  {priority.name}
-                </option>
-              ))}
-            </select>
-            <button
-              onClick={() => handleDeleteTodo(todo.id)}
-              className="delete-button"
-            >
-              Удалить
-            </button>
+            {editingId === todo.id ? (
+              <div className="edit-form">
+                <input
+                  type="text"
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                  className="edit-input"
+                  autoFocus
+                />
+                <div className="edit-buttons">
+                  <button
+                    onClick={() => handleEditSave(todo.id)}
+                    className="save-button"
+                  >
+                    Сохранить
+                  </button>
+                  <button
+                    onClick={handleEditCancel}
+                    className="cancel-button"
+                  >
+                    Отмена
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <span className="todo-text">{todo.text}</span>
+                <select
+                  value={todo.priority}
+                  onChange={(e) => handlePriorityChange(todo.id, Number(e.target.value))}
+                  className="priority-select"
+                >
+                  {PRIORITY_LEVELS.map(priority => (
+                    <option key={priority.id} value={priority.id}>
+                      {priority.name}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  onClick={() => handleEditStart(todo.id, todo.text)}
+                  className="edit-button"
+                >
+                  Редактировать
+                </button>
+                <button
+                  onClick={() => handleDeleteTodo(todo.id)}
+                  className="delete-button"
+                >
+                  Удалить
+                </button>
+              </>
+            )}
           </li>
         ))}
       </ul>
