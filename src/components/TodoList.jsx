@@ -1,9 +1,20 @@
 import React, { useState } from 'react';
 import './TodoList.css';
 
+const PRIORITY_LEVELS = [
+  { id: 1, name: 'Очень низкий', color: '#90EE90' },
+  { id: 2, name: 'Низкий', color: '#98FB98' },
+  { id: 3, name: 'Средний', color: '#FFD700' },
+  { id: 4, name: 'Высокий', color: '#FFA07A' },
+  { id: 5, name: 'Очень высокий', color: '#FF6347' }
+];
+
 const TodoList = () => {
   const [todos, setTodos] = useState([]);
   const [inputValue, setInputValue] = useState('');
+  const [filter, setFilter] = useState('all'); // 'all', 'active', 'completed'
+  const [selectedPriority, setSelectedPriority] = useState(3); // По умолчанию средний приоритет
+  const [sortOrder, setSortOrder] = useState('desc'); // 'asc' или 'desc'
 
   const handleAddTodo = (e) => {
     e.preventDefault();
@@ -11,7 +22,8 @@ const TodoList = () => {
       setTodos([...todos, {
         id: Date.now(),
         text: inputValue,
-        completed: false
+        completed: false,
+        priority: selectedPriority
       }]);
       setInputValue('');
     }
@@ -27,6 +39,38 @@ const TodoList = () => {
     setTodos(todos.filter(todo => todo.id !== id));
   };
 
+  const handlePriorityChange = (id, newPriority) => {
+    setTodos(todos.map(todo =>
+      todo.id === id ? { ...todo, priority: newPriority } : todo
+    ));
+  };
+
+  const toggleSortOrder = () => {
+    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+  };
+
+  const filteredTodos = todos.filter(todo => {
+    if (filter === 'active') return !todo.completed;
+    if (filter === 'completed') return todo.completed;
+    return true;
+  });
+
+  const sortedAndFilteredTodos = [...filteredTodos].sort((a, b) => {
+    if (sortOrder === 'asc') {
+      return a.priority - b.priority;
+    }
+    return b.priority - a.priority;
+  });
+
+  const getFilterButtonClass = (filterType) => {
+    return `filter-button ${filter === filterType ? 'active' : ''}`;
+  };
+
+  const getPriorityColor = (priorityId) => {
+    const priority = PRIORITY_LEVELS.find(p => p.id === priorityId);
+    return priority ? priority.color : '#FFD700';
+  };
+
   return (
     <div className="todo-container">
       <h1>Todo Manager</h1>
@@ -38,17 +82,74 @@ const TodoList = () => {
           placeholder="Добавить новую задачу..."
           className="todo-input"
         />
+        <select
+          value={selectedPriority}
+          onChange={(e) => setSelectedPriority(Number(e.target.value))}
+          className="priority-select"
+        >
+          {PRIORITY_LEVELS.map(priority => (
+            <option key={priority.id} value={priority.id}>
+              {priority.name}
+            </option>
+          ))}
+        </select>
         <button type="submit" className="add-button">Добавить</button>
       </form>
+
+      <div className="controls">
+        <div className="filter-buttons">
+          <button
+            className={getFilterButtonClass('all')}
+            onClick={() => setFilter('all')}
+          >
+            Все
+          </button>
+          <button
+            className={getFilterButtonClass('active')}
+            onClick={() => setFilter('active')}
+          >
+            Активные
+          </button>
+          <button
+            className={getFilterButtonClass('completed')}
+            onClick={() => setFilter('completed')}
+          >
+            Выполненные
+          </button>
+        </div>
+        <button
+          className={`sort-button ${sortOrder}`}
+          onClick={toggleSortOrder}
+          title={sortOrder === 'asc' ? 'По возрастанию' : 'По убыванию'}
+        >
+          Сортировка по приоритету {sortOrder === 'asc' ? '↑' : '↓'}
+        </button>
+      </div>
+
       <ul className="todo-list">
-        {todos.map(todo => (
-          <li key={todo.id} className={`todo-item ${todo.completed ? 'completed' : ''}`}>
+        {sortedAndFilteredTodos.map(todo => (
+          <li 
+            key={todo.id} 
+            className={`todo-item ${todo.completed ? 'completed' : ''}`}
+            style={{ borderLeft: `4px solid ${getPriorityColor(todo.priority)}` }}
+          >
             <input
               type="checkbox"
               checked={todo.completed}
               onChange={() => handleToggleTodo(todo.id)}
             />
             <span className="todo-text">{todo.text}</span>
+            <select
+              value={todo.priority}
+              onChange={(e) => handlePriorityChange(todo.id, Number(e.target.value))}
+              className="priority-select"
+            >
+              {PRIORITY_LEVELS.map(priority => (
+                <option key={priority.id} value={priority.id}>
+                  {priority.name}
+                </option>
+              ))}
+            </select>
             <button
               onClick={() => handleDeleteTodo(todo.id)}
               className="delete-button"

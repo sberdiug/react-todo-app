@@ -17,6 +17,7 @@ h1 {
   display: flex;
   gap: 1rem;
   margin-bottom: 2rem;
+  align-items: center;
 }
 
 .todo-input {
@@ -25,6 +26,20 @@ h1 {
   font-size: 1rem;
   border: 1px solid #ddd;
   border-radius: 4px;
+}
+
+.priority-select {
+  padding: 0.5rem;
+  font-size: 0.9rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+  cursor: pointer;
+  min-width: 120px;
+}
+
+.priority-select:hover {
+  border-color: #4CAF50;
 }
 
 .add-button {
@@ -41,6 +56,66 @@ h1 {
   background-color: #45a049;
 }
 
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.filter-button {
+  padding: 0.5rem 1rem;
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.filter-button:hover {
+  background-color: #e0e0e0;
+}
+
+.filter-button.active {
+  background-color: #4CAF50;
+  color: white;
+  border-color: #4CAF50;
+}
+
+.sort-button {
+  padding: 0.5rem 1rem;
+  background-color: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  align-self: center;
+}
+
+.sort-button:hover {
+  background-color: #e0e0e0;
+}
+
+.sort-button.asc {
+  background-color: #4CAF50;
+  color: white;
+  border-color: #4CAF50;
+}
+
+.sort-button.desc {
+  background-color: #2196F3;
+  color: white;
+  border-color: #2196F3;
+}
+
 .todo-list {
   list-style: none;
   padding: 0;
@@ -54,6 +129,11 @@ h1 {
   margin-bottom: 0.5rem;
   border-radius: 4px;
   gap: 1rem;
+  transition: all 0.3s ease;
+}
+
+.todo-item:hover {
+  transform: translateX(5px);
 }
 
 .todo-item.completed .todo-text {
